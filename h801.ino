@@ -54,7 +54,7 @@ const char *topicWhite1 = "white1";
 const char *topicWhite2 = "white2";
 const char *topicHsb = "hsb";
 const char *topicSpeed = "speed";
-const char *topicHeartbeat = "heartbeat";
+const char *topicStatus = "status";
 const char *topicStatusHsb = "status/hsb";
 const char *topicStatusWhite1 = "status/white1";
 const char *topicStatusWhite2 = "status/white2";
@@ -429,7 +429,7 @@ void reconnectMqtt() {
 #ifdef DEBUG
 		Serial.println(F("trying to connect to mqtt broker"));
 #endif
-		String heartbeatTopic = baseTopic + topicHeartbeat;
+		String heartbeatTopic = baseTopic + topicStatus;
 		if (client.connect(nodeName.c_str(), heartbeatTopic.c_str(), 1, true, "offline")) {
 #ifdef DEBUG
 			Serial.println(F("mqtt connected"));
@@ -443,7 +443,7 @@ void reconnectMqtt() {
 			}
 #endif
 
-			publishTopic(topicHeartbeat, "online");
+			publishTopic(topicStatus, "online");
 
 			setColor(0, 0, 0);
 			setWhite1(0);
