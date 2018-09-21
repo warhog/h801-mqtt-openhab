@@ -13,6 +13,7 @@
 #include "hsb.h"
 
 #define DEBUG
+//#define DEBUGCOLORS
 
 #define DEVBOARD
 //#define RESET_SPIFFS
@@ -502,20 +503,41 @@ void loop() {
 	if ((micros() - lastRunColors) > delayValue) {
 		lastRunColors = micros();
 
-		if (processColor(targetRed, &currentRed) ||
-			processColor(targetGreen, &currentGreen) || 
-			processColor(targetBlue, &currentBlue) || 
-			processColor(targetWhite1, &currentWhite1) || 
-			processColor(targetWhite2, &currentWhite2)) {
-// #ifdef DEBUG
-// 			Serial.printf("updating color outputs to %d %d %d %d %d\n", red, green, blue, white1, white2);
-// #endif
+		if (processColor(targetRed, &currentRed)) {
+#ifdef DEBUGCOLORS
+			Serial.printf("updating red %d\n", currentRed);
+#endif
 			analogWrite(PIN_RGB_RED, pgm_read_word(&gamma16[currentRed]));
+		}
+
+		if (processColor(targetGreen, &currentGreen)) {
+#ifdef DEBUGCOLORS
+			Serial.printf("updating green %d\n", currentGreen);
+#endif
 			analogWrite(PIN_RGB_GREEN, pgm_read_word(&gamma16[currentGreen]));
+		}
+
+		if (processColor(targetBlue, &currentBlue)) {
+#ifdef DEBUGCOLORS
+			Serial.printf("updating blue %d\n", currentBlue);
+#endif			
 			analogWrite(PIN_RGB_BLUE, pgm_read_word(&gamma16[currentBlue]));
+		}
+
+		if (processColor(targetWhite1, &currentWhite1)) {
+#ifdef DEBUGCOLORS
+			Serial.printf("updating white1 %d\n", currentWhite1);
+#endif
 			analogWrite(PIN_WHITE1, pgm_read_word(&gamma16[currentWhite1]));
+		}
+
+		if (processColor(targetWhite2, &currentWhite2)) {
+#ifdef DEBUGCOLORS
+			Serial.printf("updating white2 %d\n", currentWhite2);
+#endif
 			analogWrite(PIN_WHITE2, pgm_read_word(&gamma16[currentWhite2]));
 		}
+
 	}
 
 }
