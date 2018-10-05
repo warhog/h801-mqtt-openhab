@@ -12,10 +12,10 @@
 #include "gamma.h"
 #include "hsb.h"
 
-#define DEBUG
+//#define DEBUG
 //#define DEBUGCOLORS
 
-#define DEVBOARD
+//#define DEVBOARD
 //#define RESET_SPIFFS
 
 const char *VERSION = "1.0.0";
@@ -64,19 +64,19 @@ const char *topicStatusSpeed = "status/speed";
 unsigned long lastRunColors = 0L;
 
 Hsb hsb;
-unsigned int currentRed = 0;
-unsigned int currentGreen = 0;
-unsigned int currentBlue = 0;
-unsigned int currentWhite1 = 0;
-unsigned int currentWhite2 = 0;
+unsigned int currentRed = 1023;
+unsigned int currentGreen = 1023;
+unsigned int currentBlue = 1023;
+unsigned int currentWhite1 = 1023;
+unsigned int currentWhite2 = 1023;
 
-unsigned int targetRed = 0;
-unsigned int targetGreen = 0;
-unsigned int targetBlue = 0;
-unsigned int targetWhite1 = 0;
-unsigned int targetWhite2 = 0;
-unsigned int rawTargetWhite1 = 0;
-unsigned int rawTargetWhite2 = 0;
+unsigned int targetRed = 1023;
+unsigned int targetGreen = 1023;
+unsigned int targetBlue = 1023;
+unsigned int targetWhite1 = 1023;
+unsigned int targetWhite2 = 1023;
+unsigned int rawTargetWhite1 = 1023;
+unsigned int rawTargetWhite2 = 1023;
 
 // speed = 0 - 100: 0 -> 50000µs delay, 100 -> 100µs delay
 unsigned long delayValue = 10000;
@@ -92,10 +92,10 @@ void saveConfigCallback () {
 
 void setup() {
 #ifdef DEBUG
-#ifndef DEVBOARD
-	Serial.set_tx(2);	
-#endif
 	Serial.begin(115200);
+#ifndef DEVBOARD
+	Serial.set_tx(2);
+#endif
 	Serial.println("");
 	Serial.println(F("booting"));
 #endif
@@ -115,8 +115,10 @@ void setup() {
 	pinMode(PIN_WHITE2, OUTPUT);
 #ifndef DEVBOARD
 	pinMode(PIN_LED_GREEN, OUTPUT);
+	digitalWrite(PIN_LED_GREEN, HIGH);
 #endif
 	pinMode(PIN_LED_RED, OUTPUT);
+	digitalWrite(PIN_LED_RED, HIGH);
 
 	analogWrite(PIN_RGB_RED, 0);
 	analogWrite(PIN_RGB_GREEN, 0);
@@ -125,20 +127,23 @@ void setup() {
 	analogWrite(PIN_WHITE2, 0);
 
 	analogWrite(PIN_RGB_RED, 1023);
-	delay(200);
+	delay(100);
 	analogWrite(PIN_RGB_RED, 0);
 	analogWrite(PIN_RGB_GREEN, 1023);
-	delay(200);
+	delay(100);
 	analogWrite(PIN_RGB_GREEN, 0);
 	analogWrite(PIN_RGB_BLUE, 1023);
-	delay(200);
+	delay(100);
 	analogWrite(PIN_RGB_BLUE, 0);
 	analogWrite(PIN_WHITE1, 1023);
-	delay(200);
+	delay(100);
 	analogWrite(PIN_WHITE1, 0);
 	analogWrite(PIN_WHITE2, 1023);
-	delay(200);
-	analogWrite(PIN_WHITE2, 0);
+
+	analogWrite(PIN_WHITE1, 1023);
+	analogWrite(PIN_RGB_RED, 1023);
+	analogWrite(PIN_RGB_GREEN, 1023);
+	analogWrite(PIN_RGB_BLUE, 1023);
 
 #ifdef DEBUG
 	Serial.println(F("start spiffs"));
@@ -230,6 +235,10 @@ void setup() {
 #ifdef DEBUG
 	Serial.println(F("connected to wifi"));
 #endif
+
+	analogWrite(PIN_WHITE1, 0);
+	delay(100);
+	analogWrite(PIN_WHITE1, 1023);
 
 	strncpy(mqttServer, customMqttServer.getValue(), sizeof(mqttServer));
 	strncpy(mqttPort, customMqttPort.getValue(), sizeof(mqttPort));
@@ -438,9 +447,9 @@ void reconnectMqtt() {
 #ifndef DEVBOARD
 			for (unsigned int i = 0; i < 10; i++){
 				delay(100);
-				digitalWrite(PIN_LED_GREEN, 0);
+				digitalWrite(PIN_LED_GREEN, LOW);
 				delay(100);
-				digitalWrite(PIN_LED_GREEN, 1);
+				digitalWrite(PIN_LED_GREEN, HIGH);
 			}
 #endif
 
