@@ -21,7 +21,7 @@
 //#define DEVBOARD
 //#define RESET_SPIFFS
 
-const char *VERSION = "1.0.0";
+const char *VERSION = "1.1.0";
 
 // pin configurations
 const unsigned int PIN_RGB_RED = 15;
