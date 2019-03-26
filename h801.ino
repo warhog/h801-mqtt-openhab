@@ -84,7 +84,7 @@ unsigned int rawTargetWhite2 = 1023;
 // speed = 0 - 100: 0 -> 50000µs delay, 100 -> 100µs delay
 unsigned long delayValue = 10000;
 
-char *serverIndex = "<style>body { font-family: Arial; } a { color: blue }</style><h1>h801 webupdate</h1>current version: %VERSION%<br />build date: " __DATE__ " " __TIME__ "<br />chipid: %CHIPID%<br /><br /><a href='/update'>web update</a>";
+const char *serverIndex = "<style>body { font-family: Arial; } a { color: blue }</style><h1>h801 webupdate</h1>current version: %VERSION%<br />build date: " __DATE__ " " __TIME__ "<br />chipid: %CHIPID%<br /><br /><a href='/update'>web update</a>";
 
 void saveConfigCallback () {
 #ifdef DEBUG
