@@ -90,7 +90,7 @@ unsigned int rawTargetWhite1 = 1023;
 unsigned int rawTargetWhite2 = 1023;
 bool firstConnect = true;
 
-// speed = 0 - 100: 0 -> 50000µs delay, 100 -> 100µs delay
+// speed = 0 - 100: 0 -> 5000µs delay, 100 -> 100µs delay
 unsigned long delayValue = 1000;
 
 const char *serverIndex = "<style>body { font-family: Arial; } a { color: blue }</style><h1>h801 webupdate</h1>current version: %VERSION%<br />build date: " __DATE__ " " __TIME__ "<br />chipid: %CHIPID%<br /><br /><a href='/update'>web update</a>";
@@ -132,11 +132,11 @@ void setup() {
 	pinMode(PIN_LED_RED, OUTPUT);
 	digitalWrite(PIN_LED_RED, HIGH);
 
-	analogWrite(PIN_RGB_RED, 1023);
-	analogWrite(PIN_RGB_GREEN, 1023);
-	analogWrite(PIN_RGB_BLUE, 1023);
-	analogWrite(PIN_WHITE1, 1023);
-	analogWrite(PIN_WHITE2, 1023);
+	analogWrite(PIN_RGB_RED, 0);
+	analogWrite(PIN_RGB_GREEN, 0);
+	analogWrite(PIN_RGB_BLUE, 0);
+	analogWrite(PIN_WHITE1, 0);
+	analogWrite(PIN_WHITE2, 0);
 
 #ifdef DEBUG
 	Serial.println(F("start spiffs"));
@@ -228,17 +228,17 @@ void setup() {
 #endif
 
 	// flash when connected to wifi
-	analogWrite(PIN_RGB_RED, 0);
-	analogWrite(PIN_RGB_GREEN, 0);
-	analogWrite(PIN_RGB_BLUE, 0);
-	analogWrite(PIN_WHITE1, 0);
-	analogWrite(PIN_WHITE2, 0);
-	delay(50);
 	analogWrite(PIN_RGB_RED, 1023);
 	analogWrite(PIN_RGB_GREEN, 1023);
 	analogWrite(PIN_RGB_BLUE, 1023);
 	analogWrite(PIN_WHITE1, 1023);
 	analogWrite(PIN_WHITE2, 1023);
+	delay(50);
+	analogWrite(PIN_RGB_RED, 0);
+	analogWrite(PIN_RGB_GREEN, 0);
+	analogWrite(PIN_RGB_BLUE, 0);
+	analogWrite(PIN_WHITE1, 0);
+	analogWrite(PIN_WHITE2, 0);
 
 	strncpy(mqttServer, customMqttServer.getValue(), sizeof(mqttServer));
 	strncpy(mqttPort, customMqttPort.getValue(), sizeof(mqttPort));
@@ -459,7 +459,7 @@ void reconnectMqtt() {
 				setColor(0, 0, 0);
 				setWhite1(0);
 				setWhite2(0);
-				setSpeed(80);
+				setSpeed(20);
 			}
 
 			subscribeTopic(topicWhite1);
