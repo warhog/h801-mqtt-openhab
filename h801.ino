@@ -1,3 +1,11 @@
+/*****************************************
+ * board settings:
+ * cpu frequency: 160 MHz
+ * flash frequency: 80 MHz
+ * flash mode: QIO
+ * flash size: 1M (128K SPIFFS)
+ ****************************************/
+
 #define MQTT_KEEPALIVE 5
 #define MQTT_SOCKET_TIMEOUT 20
 
@@ -80,9 +88,10 @@ unsigned int targetWhite1 = 1023;
 unsigned int targetWhite2 = 1023;
 unsigned int rawTargetWhite1 = 1023;
 unsigned int rawTargetWhite2 = 1023;
+bool firstConnect = true;
 
 // speed = 0 - 100: 0 -> 50000µs delay, 100 -> 100µs delay
-unsigned long delayValue = 10000;
+unsigned long delayValue = 1000;
 
 const char *serverIndex = "<style>body { font-family: Arial; } a { color: blue }</style><h1>h801 webupdate</h1>current version: %VERSION%<br />build date: " __DATE__ " " __TIME__ "<br />chipid: %CHIPID%<br /><br /><a href='/update'>web update</a>";
 
@@ -123,30 +132,11 @@ void setup() {
 	pinMode(PIN_LED_RED, OUTPUT);
 	digitalWrite(PIN_LED_RED, HIGH);
 
-	analogWrite(PIN_RGB_RED, 0);
-	analogWrite(PIN_RGB_GREEN, 0);
-	analogWrite(PIN_RGB_BLUE, 0);
-	analogWrite(PIN_WHITE1, 0);
-	analogWrite(PIN_WHITE2, 0);
-
 	analogWrite(PIN_RGB_RED, 1023);
-	delay(100);
-	analogWrite(PIN_RGB_RED, 0);
 	analogWrite(PIN_RGB_GREEN, 1023);
-	delay(100);
-	analogWrite(PIN_RGB_GREEN, 0);
 	analogWrite(PIN_RGB_BLUE, 1023);
-	delay(100);
-	analogWrite(PIN_RGB_BLUE, 0);
 	analogWrite(PIN_WHITE1, 1023);
-	delay(100);
-	analogWrite(PIN_WHITE1, 0);
 	analogWrite(PIN_WHITE2, 1023);
-
-	analogWrite(PIN_WHITE1, 1023);
-	analogWrite(PIN_RGB_RED, 1023);
-	analogWrite(PIN_RGB_GREEN, 1023);
-	analogWrite(PIN_RGB_BLUE, 1023);
 
 #ifdef DEBUG
 	Serial.println(F("start spiffs"));
@@ -176,23 +166,21 @@ void setup() {
 				std::unique_ptr<char[]> buf(new char[size]);
 
 				configFile.readBytes(buf.get(), size);
-				DynamicJsonBuffer jsonBuffer;
-				JsonObject& json = jsonBuffer.parseObject(buf.get());
-#ifdef DEBUG
-				json.printTo(Serial);
-				Serial.println("");
-#endif
-				if (json.success()) {
-#ifdef DEBUG
-					Serial.println(F("parsed json"));
-#endif
-					strncpy(mqttServer, json["mqttServer"], sizeof(mqttServer));
-					strncpy(mqttPort, json["mqttPort"], sizeof(mqttPort));
-				} else {
+				DynamicJsonDocument jsonDocument(1024);
+				DeserializationError error = deserializeJson(jsonDocument, buf.get());
+				if (error) {
 					wifiManager.resetSettings();
 #ifdef DEBUG
 					Serial.println(F("failed to load json config"));
 #endif
+				} else {
+#ifdef DEBUG
+					serializeJson(jsonDocument, Serial);
+					Serial.println("");
+					Serial.println(F("parsed json"));
+#endif
+					strncpy(mqttServer, jsonDocument["mqttServer"], sizeof(mqttServer));
+					strncpy(mqttPort, jsonDocument["mqttPort"], sizeof(mqttPort));
 				}
 				configFile.close();
 			} else {
@@ -239,9 +227,18 @@ void setup() {
 	Serial.println(F("connected to wifi"));
 #endif
 
+	// flash when connected to wifi
+	analogWrite(PIN_RGB_RED, 0);
+	analogWrite(PIN_RGB_GREEN, 0);
+	analogWrite(PIN_RGB_BLUE, 0);
 	analogWrite(PIN_WHITE1, 0);
-	delay(100);
+	analogWrite(PIN_WHITE2, 0);
+	delay(50);
+	analogWrite(PIN_RGB_RED, 1023);
+	analogWrite(PIN_RGB_GREEN, 1023);
+	analogWrite(PIN_RGB_BLUE, 1023);
 	analogWrite(PIN_WHITE1, 1023);
+	analogWrite(PIN_WHITE2, 1023);
 
 	strncpy(mqttServer, customMqttServer.getValue(), sizeof(mqttServer));
 	strncpy(mqttPort, customMqttPort.getValue(), sizeof(mqttPort));
@@ -250,8 +247,7 @@ void setup() {
 #ifdef DEBUG
 		Serial.println(F("saving config"));
 #endif
-		DynamicJsonBuffer jsonBuffer;
-		JsonObject& json = jsonBuffer.createObject();
+		DynamicJsonDocument json(1024);
 		json["mqttServer"] = mqttServer;
 		json["mqttPort"] = mqttPort;
 
@@ -262,10 +258,10 @@ void setup() {
 #endif
 		} else {
 #ifdef DEBUG
-			json.printTo(Serial);
+			serializeJson(json, Serial);
 			Serial.println("");
 #endif
-			json.printTo(configFile);
+			serializeJson(json, configFile);
 			configFile.close();
 		}
 	}
@@ -333,7 +329,7 @@ void setWhite2(unsigned int w) {
 }
 
 void setSpeed(unsigned int speed) {
-	delayValue = -499 * speed + 50000;
+	delayValue = -49 * speed + 5000;
 #ifdef DEBUG
 	Serial.printf("delay value: %d\n", delayValue);
 #endif
@@ -458,10 +454,13 @@ void reconnectMqtt() {
 
 			publishTopic(topicStatus, "online");
 
-			setColor(0, 0, 0);
-			setWhite1(0);
-			setWhite2(0);
-			setSpeed(80);
+			if (firstConnect) {
+				firstConnect = false;
+				setColor(0, 0, 0);
+				setWhite1(0);
+				setWhite2(0);
+				setSpeed(80);
+			}
 
 			subscribeTopic(topicWhite1);
 			subscribeTopic(topicWhite2);
